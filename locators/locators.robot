@@ -28,3 +28,6 @@ ${btnOrderAnother}    //button[@id='order-another']
 
 #Botão logout
 ${btnLogout}    //button[@id='logout']
+
+#Div Alert
+${divAlert}    //div[@role='alert']

@@ -10,8 +10,8 @@ Library    RPA.Excel.Files
 Library    RPA.Tables
 Library    Collections
 Library    RPA.HTTP
-Library    RPA.Desktop
 Library    RPA.PDF
+Library    RPA.Archive
 
 Resource    locators/locators.robot
 
@@ -25,14 +25,18 @@ Pede robôs da RobotSpareBin Industries Inc
     ${pedidos}=    Get pedidos
 
     FOR    ${pedido}    IN    @{pedidos}
+        Reload Page
         Sleep    1.5s
         Fecha a modal chata
         Preencha o formulario    ${pedido}
         Pré-visualizar o robô
+        Sleep    1.5s
         Pedir robô
+        Sleep    1s
         ${pdf}=    Salvar a receita do robô como PDF    ${pedido}[Order number]
         ${screenshot}=    Tirar screenshot do robô    ${pedido}[Order number]
         Incorporar o screenshot do robô ao PDF    ${pedido}    ${screenshot}
+        Criar pacote ZIP dos arquivos PDFs
         Sleep    2s
         Pedir outro robô
     END
@@ -41,7 +45,7 @@ Pede robôs da RobotSpareBin Industries Inc
 
 *** Keywords ***
 Abre a página de pedido dos robôs
-    Open Browser    https://robotsparebinindustries.com/#/robot-order    browser=chrome
+    Open Browser    https://robotsparebinindustries.com/#/robot-order    browser=chrome    #options=add_argument("--headless")
 
 
 Get pedidos
@@ -91,7 +95,6 @@ Tirar screenshot do robô
 
 Salvar a receita do robô como PDF
     [Arguments]    ${pedido}
-    Wait Until Element Is Visible    ${robotRecipe}
     ${robot_recipe_html}=    Get Element Attribute    ${robotRecipe}    outerHTML
     ${saved_recipe_pdf}=    Html To Pdf    ${robot_recipe_html}    ${OUTPUT_DIR}${/}recipes${/}robot_recipe${pedido}.pdf
     [Return]    ${saved_recipe_pdf}
@@ -100,9 +103,10 @@ Incorporar o screenshot do robô ao PDF
     [Arguments]    ${pedido}    ${screenshot}
     ${pdf}=    Open Pdf    ${OUTPUT_DIR}${/}recipes${/}robot_recipe${pedido}[Order number].pdf
     Add Watermark Image To Pdf    ${screenshot}    ${OUTPUT_DIR}${/}recipes${/}robot_recipe${pedido}[Order number].pdf
-    
 
-    #Add Files To Pdf    ${screenshot}    ${OUTPUT_DIR}${/}robots_recipe.pdf
+Criar pacote ZIP dos arquivos PDFs
+    ${nome_arquivo_zip}=    Set Variable    ${OUTPUT_DIR}${/}robot_recipes.zip
+    Archive Folder With Zip    ${OUTPUT_DIR}${/}recipes    ${nome_arquivo_zip}
 
 Pedir outro robô
     Wait Until Element Is Visible    ${btnOrderAnother}
